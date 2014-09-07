@@ -175,9 +175,9 @@ function doResultOfTurn(nameP : String, turnS : String, resultS : String) {
 	if (nameP == playerName) gameLog = myLog;
 	if (turn[0] == "move") {
 		if (result[0] == "wall") {
-			gameLog.addWall(turn[1], "wall");
+			gameLog.addWall(new Direction(turn[1]), "wall");
 		} else if (result[0] == "move") {
-			gameLog.addMove(turn[1]);
+			gameLog.addMove(new Direction(turn[1]));
 			var corpseCount : int = int.Parse(result[1]);
 			for (var it : int = 0; it < corpseCount; it++) {
 				var name : String = result[2 + it];

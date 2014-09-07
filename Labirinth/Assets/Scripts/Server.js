@@ -76,7 +76,8 @@ function addPlayer(i : int, j : int, nameP : String, player : NetworkPlayer) {
 }
 
 //Обрабатывает движение игрока
-function move(nameP : String, direction : String) {
+function move(nameP : String, direct : String) {
+	var direction : Direction = new Direction(direct);
 	var result : String;
 	var nameNext : String;
 	var hasKey : boolean = false;
@@ -145,10 +146,11 @@ function move(nameP : String, direction : String) {
 	}
 	
 	turnPlayer = nameNext;
-	netAdmin.sendResultOfTurn(nameP, "move " + direction, result, nameNext);
+	netAdmin.sendResultOfTurn(nameP, "move " + direct, result, nameNext);
 }
 
-function shoot(nameP : String, direction : String, item : int) {
+function shoot(nameP : String, direct : String, item : int) {
+	var direction : Direction = new Direction(direct);
 	var result : String = "";
 	var nameNext : String;
 	var playerPos : Vector3 = field.findPlayer(nameP);
@@ -160,6 +162,7 @@ function shoot(nameP : String, direction : String, item : int) {
 	var bullet : Item = objectFactory.createItem(item);
 	player.deleteItem(new Bullet());
 	var pos : Vector2 = new Vector2(playerPos.x, playerPos.y);
+	
 	for (;;) {
 		for (var obj : LabyrinthObject in field.cell[pos.x, pos.y]) {
 			if (obj.type == LabyrinthObject.TYPE_PLAYER) {
@@ -173,8 +176,11 @@ function shoot(nameP : String, direction : String, item : int) {
 			break;
 		}
 		if (field.getWall(pos.x, pos.y, direction) != "empty") {
-			bullet.hitWall(field.getWall(pos.x, pos.y, direction), direction);
+			if (!bullet.hitWall(direction)) {
+				break;
+			}
 		}
+		Debug.Log(direction.getName());
 		pos = Labyrinth.move(pos.x, pos.y, direction);
 	}
 	
@@ -189,6 +195,11 @@ function shoot(nameP : String, direction : String, item : int) {
 	
 	if (playerPos.x == pos.x && playerPos.y == pos.y) {
 		result += " 1";
+		for (tmpPlayer in victims) {
+			if (tmpPlayer.alive == false) {
+				player.take(tmpPlayer);
+			}
+		} 
 	} else {
 		result += " 0";
 	}
@@ -196,7 +207,7 @@ function shoot(nameP : String, direction : String, item : int) {
 	nameNext = turnQueue.pop() || nameP;
 	turnQueue.push(nameP);
 	turnPlayer = nameNext;
-	netAdmin.sendResultOfTurn(nameP, "shoot " + direction + ' ' + item, result, nameNext);
+	netAdmin.sendResultOfTurn(nameP, "shoot " + direct + ' ' + item.ToString(), result, nameNext);
 }
 
 function dig(nameP : String) {
@@ -210,7 +221,7 @@ function dig(nameP : String) {
 	
 	for (var it : LabyrinthObject in field.cell[playerPos.x, playerPos.y]) {
 		if (it.type == LabyrinthObject.TYPE_TREASURE) {
-			treasures.Add(treasure);
+			treasures.Add(it);
 		}
 	}
 	
@@ -308,10 +319,15 @@ function doCommand(command : String) {
 		}
 	} else if (com[0] == "get_wall") {
 		tmpos = new Vector2(int.Parse(com[1]), int.Parse(com[2]));
-		commandLog.Add(field.getWall(tmpos.x, tmpos.y, com[3]));
+		commandLog.Add(field.getWall(tmpos.x, tmpos.y, new Direction(com[3])));
 	} else if (com[0] == "add_wall") {
 		tmpos = new Vector2(int.Parse(com[1]), int.Parse(com[2]));
-		field.addWall(tmpos.x, tmpos.y, com[3], com[4]);
+		field.addWall(tmpos.x, tmpos.y, new Direction(com[3]), com[4]);
+	} else if (com[0] == "do") {
+		for (var i : int = 2; i < com.length; i++) {
+			com[1] += ' ' + com[i];
+		}
+		doTurn(com[1], turnPlayer);
 	}
 }
 

@@ -23,6 +23,50 @@
 // TODO: Return info from item;
 // AddObject - Optimize
 
+class Direction {
+	static public var UP = 0;
+	static public var LEFT = 1;
+	static public var DOWN = 2;
+	static public var RIGHT = 3;
+	static private var name : String[] = ["up", "left", "down", "right"];
+	
+	public var dir : int;
+	function getName() : String {
+		return name[dir];
+	}
+	
+	function Direction() {
+		dir = UP;
+	}
+	
+	function Direction(a : int) {
+		dir = a;
+	}
+	
+	function Direction(a : String) {
+		var c = 0;
+		for (var i : String in name) {
+			if (i == a) {
+				dir = c;
+				return;
+			}
+			c++;
+		}
+	}
+	
+	function turnClockwise() {
+		dir = (dir + 3) % 4;
+	}
+	
+	function turnCounterClockwise() {
+		dir = (dir + 1) % 4;
+	}
+	
+	function reverse() {
+		dir = (dir + 2) % 4;
+	}
+}
+
 class LabyrinthObject extends Object {
 	static public var TYPE_EMPTY = 0;
 	static public var TYPE_ITEM = 1;
@@ -40,13 +84,18 @@ class LabyrinthObject extends Object {
 	
 	function LabyrinthObject () {
 		type = TYPE_EMPTY;
+		name = "empty";
 		toString = function() : String {
-			return type.ToString();
+			return name;
 		};
 	}
 	
 	function remove() {
 		type = TYPE_EMPTY;
+		name = "empty";
+		toString = function() : String {
+			return name;
+		};
 	}
 };
 
@@ -99,14 +148,14 @@ class Player extends LabyrinthObject {
 			var tmp : String = "player: name = " + name + "; life = " + 
 				life.ToString() + "; alive = " + alive.ToString()+ "; items : ";
 			for (var item : Item in items) {
-				tmp += item.toString() + ' ';
+				tmp += '(' + item.toString() + ' )';
 			}
 			return tmp + ";";
 		};
 	}
 	
 	function take(corpse : Player) {
-		for (var i : String in corpse.items) {
+		for (var i : Item in corpse.items) {
 			items.Add(i);
 		}
 		corpse.items = new ArrayList();
@@ -198,9 +247,10 @@ class Labyrinth {
 	}
 	
 	//По кордам и направлению дает новые корды.
-	static function move(I : int, J : int, direction : String) : Vector2 {
+	static function move(I : int, J : int, direct : Direction) : Vector2 {
 		var i : int = I;
 		var j : int = J;
+		var direction : String = direct.getName();
 		if (direction == "up") {
 			i = i + 1;
 		}
@@ -216,7 +266,8 @@ class Labyrinth {
 		return Vector2(i, j);
 	}
 
-	function getWall(i : int, j : int, direction : String) {
+	function getWall(i : int, j : int, direct : Direction) {
+		var direction : String = direct.getName();
 		if (direction == "up" || direction == "down") {
 			if (direction == "up") {
 				i++;
@@ -230,7 +281,8 @@ class Labyrinth {
 		}
 	}
 	
-	function addWall(i : int, j : int, direction : String, wall : String) {
+	function addWall(i : int, j : int, direct : Direction, wall : String) {
+		var direction : String = direct.getName();
 		if (direction == "up" || direction == "down") {
 			if (direction == "up") {
 				i++;
@@ -240,7 +292,7 @@ class Labyrinth {
 			if (direction == "right") {
 				j++;
 			}
-			verticalWalls[i, j] = wall;
+			verticalWalls[i, j] = new String.Copy(wall);
 		}
 	}
 	
@@ -263,13 +315,14 @@ class Labyrinth {
 		return Vector3(w + 1, h + 1, 1);
 	}
 	
-	function movePlayer(name : String, direction : String) {
+	function movePlayer(name : String, direct : Direction) {
+		var direction : String = direct.getName();
 		var player : Player;
 		var pos : Vector3 = findPlayer(name);
 		
 		player = cell[pos.x, pos.y][pos.z];
 		cell[pos.x, pos.y].RemoveAt(pos.z);
-		var tmp : Vector2 = Labyrinth.move(pos.x, pos.y, direction);
+		var tmp : Vector2 = Labyrinth.move(pos.x, pos.y, direct);
 		var i : int = tmp.x;
 		var j : int = tmp.y;
 		cell[i, j].Add(player);
@@ -294,16 +347,16 @@ class Labyrinth {
 
 	function makeBorder() {
 		for (var r : int = 0; r < h; r++) {
-			verticalWalls[r, 0] = "border";
-			verticalWalls[r, w] = "border";
+			verticalWalls[r, 0] = new String.Copy("border");
+			verticalWalls[r, w] = new String.Copy("border");
 		}
 		for (var c : int = 0; c < w; c++) {
-			horizontWalls[0, c] = "border";
-			horizontWalls[h, c] = "border";
+			horizontWalls[0, c] = new String.Copy("border");
+			horizontWalls[h, c] = new String.Copy("border");
 		}
 	}
 
-	var direct : String[] = ["up", "left", "down", "right"];
+	
 	private var wasWall : boolean[,,];
 	
 	//settings:
@@ -318,7 +371,7 @@ class Labyrinth {
 			var i : int = Mathf.RoundToInt(Random.Range(-0.5 + float.Epsilon, h - 0.5 - float.Epsilon));
 			var j : int = Mathf.RoundToInt(Random.Range(-0.5 + float.Epsilon, w - 0.5 - float.Epsilon));
 			var k : int = Mathf.RoundToInt(Random.Range(-0.5 + float.Epsilon, 4 - 0.5 - float.Epsilon));
-			var newPos : Vector2 = move(i, j, direct[k]);	
+			var newPos : Vector2 = move(i, j, new Direction(k));	
 			if (checkPos(newPos.x, newPos.y)) {
 				var lastk : int = dsu.k;
 				dsu.merge(i, j, newPos.x, newPos.y);
@@ -334,7 +387,7 @@ class Labyrinth {
 			for (j = 0; j < w; j++) {
 				for (k = 0; k < 4; k++) {
 					if (!wasWall[i, j, k]) {
-						if (Random.value < data.wallProb) addWall(i, j, direct[k], "wall");
+						if (Random.value < data.wallProb) addWall(i, j, new Direction(k), "wall");
 					}
 				}
 			}
@@ -361,7 +414,7 @@ class Labyrinth {
 				treasurePos.y = Mathf.FloorToInt(Random.Range(0, w - float.Epsilon));
 				var wallCount : int = 0;
 				for (j = 0; j < 4; j++) {
-					if (getWall(treasurePos.x, treasurePos.y, direct[j]) != "empty") 
+					if (getWall(treasurePos.x, treasurePos.y, new Direction(j)) != "empty") 
 						wallCount++;
 				}
 				var f : boolean = true;
@@ -417,14 +470,16 @@ class GameLog extends Labyrinth {
 		}
 	}
 	
-	function addMove(direction : String) {
+	function addMove(direct : Direction) {
+		var direction : String = direct.getName();
 		turn.Add(direction);
-		var tmp : Vector2 = Labyrinth.move(iCur, jCur, direction);
+		var tmp : Vector2 = Labyrinth.move(iCur, jCur, direct);
 		iCur = tmp.x;
 		jCur = tmp.y;
 	}
 	
-	function addWall(direction : String, wall : String) {
+	function addWall(direct : Direction, wall : String) {
+		var direction : String = direct.getName();
 		if (direction == "up" || direction == "down") {
 			var j : int = jCur;
 			var i : int = 0;

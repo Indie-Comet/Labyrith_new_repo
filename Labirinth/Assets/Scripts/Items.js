@@ -11,7 +11,8 @@ class Item extends LabyrinthObject {
 	public var itemType : int;
 	public var infoWindow = function(windowID : int){};
 	public var hitPlayer = function(player : Player, field : Labyrinth){};
-	public var hitWall = function(wall : String, direction : String) : boolean {};
+	public var hitWall = function(direction : Direction) : boolean {};
+	public var use = function(player : Player, field : Labyrinth){};
 	
 	function Item() {
 		name = "empty";
@@ -24,7 +25,8 @@ class Item extends LabyrinthObject {
 			GUILayout.Label("--EMPTY--");
 		};
 		hitPlayer = function(player : Player, field : Labyrinth) {};
-		hitWall = function(wall : String, direction : String) : boolean {return false;};
+		use = function(player : Player, field : Labyrinth) {};
+		hitWall = function(direction : Direction) : boolean {return false;};
 	}
 };
 

@@ -28,7 +28,7 @@ function Start() {
 	Debug.Log(a.ToString() + ' ' + b.ToString());
 }
 
-function OnGUI () {	
+function OnGUI () {		
 	serverButton.normalizeFont();
 	clientButton.normalizeFont();
 	ipField.normalizeFont();
