@@ -46,11 +46,6 @@ var skin : GUISkin;
 
 function controls(windowID : int) {
 	if (netAdmin.myTurn) {
-		/*turn = GUI.TextField(new Rect(100, 100, 100, 30), turn);
-		if (GUI.Button(new Rect(100, 200, 100, 50), "Send")) {
-			netAdmin.sendTurn(turn);
-		}*/
-		
 		//TODO : картинки стрелочек.
 		if (GUI.Button(rightButton.scale.convertScales(), "", skin.button)) {
 			netAdmin.sendTurn("move right");
@@ -64,33 +59,35 @@ function controls(windowID : int) {
 		if (GUI.Button(downButton.scale.convertScales(), "", skin.button)) {
 			netAdmin.sendTurn("move down");
 		}
-		//Список предметов.
 		
+		//Список предметов.
 		skin.button.fontSize = itemsList.fontSize;
 		GUILayout.BeginArea(itemsList.scale.convertScales());
 			for (var i : int = 0; i < listRows; i++) {
 				GUILayout.BeginHorizontal();
 					for (var j : int = 0; j < listColums; j++) {
-						var itemName : String;
+						var item : Item;
 						var itemNum : int = i * listColums + j;
 						if (netAdmin.myLog.player.items.Count > itemNum) { 
-							itemName = netAdmin.myLog.player.items[itemNum];
+							item = netAdmin.myLog.player.items[itemNum];
 						} else {
-							itemName = "-empty-";
+							item = new Item();
 						}
 						//TODO:size and font!
-						var pressed : boolean = GUILayout.Button(itemName, skin.button, 
-									GUILayout.Width(itemsList.scale.convertScales().width / listColums),
-									GUILayout.Height(itemsList.scale.convertScales().height / listRows));
+						var pressed : boolean = GUILayout.Button(item.image, skin.button, 
+									GUILayout.Width(itemsList.scale.convertScales().width / listColums - 1 * listColums),
+									GUILayout.Height(itemsList.scale.convertScales().height / listRows - 1 * listRows));
 						
 						if (pressed) {
-							//TODO:Окошко о предмете.
+							//TODO:
 						}
+						//TODO:Окошко о предмете.
 					}
 				GUILayout.EndHorizontal();
 			}
 		GUILayout.EndArea();
 	}
+	
 	if (!gameStarted && netAdmin.isServer) {
 		skin.button.fontSize = startButton.fontSize;
 		

@@ -14,7 +14,10 @@ class Item extends LabyrinthObject {
 	public var hitWall = function(direction : Direction) : boolean {};
 	public var use = function(player : Player, field : Labyrinth){};
 	
+	public var image : Texture;
+	
 	function Item() {
+		image = new Texture();
 		name = "empty";
 		itemType = ITEM_TYPE_EMPTY;
 		type = TYPE_ITEM;
@@ -46,6 +49,7 @@ class Flower extends Item {
 
 class Bullet extends Item {
 	function Bullet() {
+		image = AssetDatabase.LoadAssetAtPath("Assets/Textures/18040.jpg", typeof(Texture)) as Texture;
 		itemType = ITEM_TYPE_BULLET;
 		name = "bullet";
 		hitPlayer = function(player : Player, field : Labyrinth) {
